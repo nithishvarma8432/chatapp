@@ -1,15 +1,19 @@
-// src/app/page.js
-"use client"
- 
-import React, { useEffect } from 'react';
-import { auth } from '../../firebase/config';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import useStore from '../../store/useStore';
-import Login from '../../components/Login';
-import Chat from '../../components/Chat';
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { auth } from "../../firebase/config";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import useStore from "../../store/useStore";
+import Login from "../../components/Login";
+import Chat from "../../components/Chat";
 
 export default function Home() {
   const { user, setUser } = useStore();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true); // Ensures client-side rendering only
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -27,6 +31,9 @@ export default function Home() {
     }
   };
 
+  // Prevent hydration error by only rendering when mounted
+  if (!isMounted) return null;
+
   if (!user) {
     return <Login />;
   }
@@ -34,7 +41,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-gradient-to-r from-blue-500 to-teal-400 p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Welcome, {user.displayName}</h1>
+      <h1 className="text-2xl font-bold text-white">
+  Welcome, {user?.displayName || user?.email?.split("@")[0]}
+</h1>
+
         <button 
           onClick={handleLogout} 
           className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded"

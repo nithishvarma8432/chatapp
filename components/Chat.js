@@ -1,104 +1,84 @@
-// components/Chat.js
-import React, { useEffect, useState } from 'react';
-import { firestore, auth } from '../firebase/config';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  serverTimestamp,
-  deleteDoc,
-  doc
-} from 'firebase/firestore';
-import useStore from '../store/useStore';
+import React, { useState, useEffect } from "react";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
 
-const Chat = () => {
-  const [input, setInput] = useState('');
-  const { messages, setMessages } = useStore();
+export default function Chat() {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
 
-  // Listen for messages in real time
   useEffect(() => {
-    const q = query(collection(firestore, 'messages'), orderBy('createdAt'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const msgs = [];
-      querySnapshot.forEach((doc) => {
-        msgs.push({ id: doc.id, ...doc.data() });
-      });
-      setMessages(msgs);
+    const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMessages(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
     return () => unsubscribe();
-  }, [setMessages]);
+  }, []);
 
-  // Send message to Firestore
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    await addDoc(collection(firestore, 'messages'), {
-      text: input,
+    if (newMessage.trim() === "") return;
+
+    await addDoc(collection(db, "messages"), {
+      text: newMessage,
       createdAt: serverTimestamp(),
-      uid: auth.currentUser.uid,
-      photoURL: auth.currentUser.photoURL,
+      user: auth.currentUser.displayName || auth.currentUser.email,
+      userId: auth.currentUser.uid,
     });
-    setInput('');
+
+    setNewMessage("");
   };
 
-  // Delete a message from Firestore
-  const handleDelete = async (messageId) => {
-    try {
-      await deleteDoc(doc(firestore, 'messages', messageId));
-    } catch (error) {
-      console.error("Error deleting message: ", error);
-    }
+  const deleteMessage = async (id) => {
+    await deleteDoc(doc(db, "messages", id));
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800">Chat Room</h2>
-      <div className="border rounded-lg p-4 h-96 overflow-y-scroll bg-white shadow">
+    <div className="flex flex-col h-[80vh] w-full max-w-3xl mx-auto bg-gray-900 rounded-lg shadow-xl mt-10 overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-teal-400 p-4 text-white font-bold text-lg text-center">
+        Chat Room
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-800 text-white">
         {messages.map((msg) => (
-          <div key={msg.id} className="mb-4 p-2 bg-gray-50 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <img
-                  src={msg.photoURL}
-                  alt="user avatar"
-                  className="w-10 h-10 rounded-full mr-3"
-                />
-                <span className="text-gray-900">{msg.text}</span>
-              </div>
-              {msg.uid === auth.currentUser.uid && (
-                <button
-                  onClick={() => handleDelete(msg.id)}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  Delete
-                </button>
-              )}
+          <div
+            key={msg.id}
+            className={`p-3 rounded-lg shadow-lg w-fit max-w-[70%] flex justify-between items-center ${
+              msg.userId === auth.currentUser.uid
+                ? "ml-auto bg-blue-500 text-white"
+                : "bg-gray-700 text-gray-200"
+            }`}
+          >
+            <div>
+              <span className="block text-xs font-semibold text-gray-300">
+                {msg.user}
+              </span>
+              {msg.text}
             </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {msg.createdAt?.seconds 
-                ? new Date(msg.createdAt.seconds * 1000).toLocaleTimeString() 
-                : 'Sending...'}
-            </div>
+            {msg.userId === auth.currentUser.uid && (
+              <button
+                onClick={() => deleteMessage(msg.id)}
+                className="ml-3 text-red-500 hover:text-red-700 text-sm"
+              >
+                Delete
+              </button>
+            )}
           </div>
         ))}
       </div>
-      <form onSubmit={sendMessage} className="mt-4 flex">
-      <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 p-3 border border-gray-300 rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-            />
-
-        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-r">
+      <form onSubmit={sendMessage} className="flex items-center bg-gray-700 p-3 border-t border-gray-600">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Type a message..."
+          className="flex-1 p-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 bg-gray-600 text-white placeholder-gray-400"
+        />
+        <button
+          type="submit"
+          className="ml-3 bg-teal-500 hover:bg-teal-600 text-white px-5 py-2 rounded-lg font-semibold"
+        >
           Send
         </button>
       </form>
     </div>
   );
-};
-
-export default Chat;
+}

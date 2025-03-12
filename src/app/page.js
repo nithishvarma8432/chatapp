@@ -12,7 +12,7 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true); // Ensures client-side rendering only
+    setIsMounted(true);  
   }, []);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function Home() {
     }
   };
 
-  // Prevent hydration error by only rendering when mounted
+   
   if (!isMounted) return null;
 
   if (!user) {

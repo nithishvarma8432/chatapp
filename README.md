@@ -14,9 +14,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
 Update Firestore database Rules to:
-
+```
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
     // This rule applies only to the 'messages' collection
@@ -24,11 +23,10 @@ service cloud.firestore {
       // Allow read and write if the user is authenticated
       allow read, write: if request.auth != null;
     }
-    
     // Other collections or documents remain locked
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
-
+```

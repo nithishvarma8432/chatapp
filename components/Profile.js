@@ -12,7 +12,7 @@ export default function Profile() {
 
     setProfileUploading(true);
 
-    // Replace with your Cloudinary credentials
+     
     const cloudName = "dmlttdgsk"; 
     const uploadPreset = "chat_profile_pics"; 
 
@@ -33,7 +33,7 @@ export default function Profile() {
       if (!response.ok) throw new Error(data.error.message);
 
       const downloadURL = data.secure_url;
-      // Update Firebase Auth with the new photoURL
+      
       await updateProfile(auth.currentUser, { photoURL: downloadURL });
       await auth.currentUser.reload();
 
@@ -48,14 +48,14 @@ export default function Profile() {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Small Avatar */}
+      
       <img
         src={auth.currentUser?.photoURL || "https://via.placeholder.com/40"}
         alt="Profile"
         className="w-10 h-10 rounded-full border border-gray-300 object-cover"
       />
 
-      {/* "Change" Button + Hidden File Input */}
+     
       <label className="relative cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
         {profileUploading ? "Uploading..." : "Change"}
         <input

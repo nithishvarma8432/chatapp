@@ -8,6 +8,16 @@ import {
   updateProfile 
 } from "firebase/auth";
 
+
+const registerUser = async () => {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  await updateProfile(userCredential.user, {
+    displayName: username,
+    photoURL: "https://example.com/default-profile.png", // Set default profile picture
+  });
+};
+
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -46,7 +46,7 @@ export default function Home() {
     Welcome, {user?.displayName || user?.email?.split("@")[0]}
   </h1>
 
-  {/* Put Profile and Log Out in a row */}
+  
   <div className="flex items-center gap-4">
     <Profile />
     <button

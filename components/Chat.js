@@ -10,6 +10,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
+import { updateProfile } from "firebase/auth";
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
